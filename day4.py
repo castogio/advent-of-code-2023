@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 
 @dataclass
@@ -5,6 +6,7 @@ class Scratchcard:
     id: int
     winning_numbers: set[int]
     card_nums: set[int]
+    _num_matches: int = -1
 
     @property
     def part1_points(self) -> int:
@@ -12,8 +14,12 @@ class Scratchcard:
     
     @property
     def num_matches(self) -> int:
-        return len(self.card_nums.intersection(self.winning_numbers))
+        if self._num_matches < 0:
+            self._num_matches = len(self.card_nums.intersection(self.winning_numbers))
+        return self._num_matches
 
+    def __lt__(self, other):
+        return self.id < other.id
 
     @staticmethod
     def loads(entry: str) -> 'Scratchcard':
@@ -24,12 +30,17 @@ class Scratchcard:
         card_nums = {int(n) for n in numbers_str.strip().split()}
         return Scratchcard(card_id, winning_numbers, card_nums)
 
+previous_wins = {}
 def get_win(card: Scratchcard, cards: list[Scratchcard]) -> list[Scratchcard]:
-    if not card.num_matches:
-        return []
-    return cards[card.id:card.id+card.num_matches]
+    if card.id in previous_wins:
+        return previous_wins[card.id]
+    list_win = []
+    if card.num_matches:
+        list_win = cards[card.id:card.id+card.num_matches]
+    previous_wins[card.id] = list_win
+    return list_win
 
-def depth_first_search(bucket: list[Scratchcard], all_cards: list[Scratchcard]) -> list[Scratchcard]:
+def recursive_card_list_creation(bucket: list[Scratchcard], all_cards: list[Scratchcard]) -> list[Scratchcard]:
     new_bucket = []
     for c in bucket:
         new_bucket.extend(get_win(c, all_cards))
@@ -37,7 +48,34 @@ def depth_first_search(bucket: list[Scratchcard], all_cards: list[Scratchcard]) 
     if not len(new_bucket):
         return bucket
     
-    return bucket + depth_first_search(new_bucket, all_cards)
+    return bucket + recursive_card_list_creation(new_bucket, all_cards)
+
+def iterative_card_list_creation(initial_bucket: list[Scratchcard], all_cards: list[Scratchcard]) -> list[Scratchcard]:
+    tmp_bucket = initial_bucket + [] # make copy
+    final_bucket = []
+
+    for c in tmp_bucket:
+        tmp_bucket.extend(get_win(c, all_cards))
+        final_bucket.append(c)
+    
+    return final_bucket
+
+def compute_card_number_stack(cards: list[Scratchcard]) -> int:
+
+    counter = 0
+    stack = []
+
+    for c in cards:
+        counter += 1
+        stack.append(c)
+    
+    while len(stack):
+        c = stack.pop()
+        for nc in get_win(c, cards):
+            counter += 1
+            stack.append(nc)
+    
+    return counter
 
 if __name__ == "__main__":
 
@@ -75,10 +113,27 @@ if __name__ == "__main__":
     assert get_win(test_cards[4], test_cards) == []
     assert get_win(test_cards[5], test_cards) == []
 
-    assert len(depth_first_search(test_cards, test_cards)) == 30
+    assert len(recursive_card_list_creation(test_cards, test_cards)) == 30
+    assert len(iterative_card_list_creation(test_cards, test_cards)) == 30
+    assert compute_card_number_stack(test_cards) == 30
 
-    total = len(depth_first_search(cards, cards))
-    print(f'part2 total = {total}')
+    t0 = time.time()
+    total = len(recursive_card_list_creation(cards, cards))
+    t1 = time.time()
+    time_elapsed = t1-t0
+    print(f'part2 RECUSRIVE total = {total} computed in {time_elapsed} s')
+
+    t0 = time.time()
+    total = len(iterative_card_list_creation(cards, cards))
+    t1 = time.time()
+    time_elapsed = t1-t0
+    print(f'part2 ITERATIVE total = {total} computed in {time_elapsed} s')
+
+    t0 = time.time()
+    total = compute_card_number_stack(cards)
+    t1 = time.time()
+    time_elapsed = t1-t0
+    print(f'part2 STACK total = {total} computed in {time_elapsed} s')
     
 
 
