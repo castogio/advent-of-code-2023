@@ -164,3 +164,7 @@ cython_debug/
 
 # pipenv
 Pip*
+
+# advent of code
+*input*.txt
+
