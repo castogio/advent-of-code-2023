@@ -1,5 +1,3 @@
-import pytest
-
 from day7 import *
 
 def test_create_hand():
