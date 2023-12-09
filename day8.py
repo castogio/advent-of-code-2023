@@ -4,6 +4,8 @@ from math import lcm
 from typing import Generator, NamedTuple
 from re import match
 
+import time
+
 class Node(NamedTuple):
     name: str
     left: str
@@ -78,5 +80,14 @@ if __name__ == '__main__':
     with open('./input.txt') as f:
         lines = [line.strip() for line in f.readlines()]
 
-    print(f'part1 total = {len(Map.loads(lines).compute_path())}')
-    print(f'part2 total = {Map.loads(lines).get_parallel_paths_lenght()}')
+    map = Map.loads(lines)
+
+    start = time.time()
+    print(f'part1 total = {len(map.compute_path())}')
+    end = time.time()
+    print(f'part 1 execution time = {round((end-start) * 10**3, 2)} ms')
+
+    start = time.time()
+    print(f'part2 total = {map.get_parallel_paths_lenght()}')
+    end = time.time()
+    print(f'part 2 execution time = {round((end-start) * 10**3, 2)} ms')
