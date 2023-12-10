@@ -1,5 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
+
 
 @dataclass
 class Location:
@@ -83,105 +86,30 @@ class Map:
         self._loop = loop
         return loop
     
-    def get_inside_tiles(self) -> list[Location]:
-        
-        def is_inside(tile: Location) -> bool:
-
-            x_hits = 0
-            streak = False
-            streak_count = 0
-            for x in range(tile.x):
-                hit = Location(x, tile.y) in self._loop
-                if hit:
-                    if not streak:
-                        x_hits += 1
-                        streak = True
-                    else:
-                        streak_count += 1
-                else:
-                    if streak and streak_count > 0:
-                        x_hits += 1
-                        streak_count = 0
-                    streak = False
-            if streak and streak_count > 0:
-                x_hits += 1
-                # if hit and not streak:
-                #     x_hits += 1
-                #     streak = True
-                # if not hit:
-                #     if streak:
-                #         x_hits += 1
-                #     streak = False
-
-
-            y_hits = 0
-            streak = False
-            streak_count = 0
-            for y in range(tile.y, len(self._loop)):
-                hit = Location(tile.x, y) in self._loop
-                if hit:
-                    if not streak:
-                        y_hits += 1
-                        streak = True
-                    else:
-                        streak_count += 1
-                else:
-                    if streak and streak_count > 0:
-                        y_hits += 1
-                        streak_count = 0
-                    streak = False
-                if streak and streak_count > 0:
-                    y_hits += 1
-            
-            legacy_hits = 0
-            for y in range(tile.y, len(self._loop)):
-                legacy_hits += 1 if Location(tile.x, y) in self._loop else 0
-
-            print(x_hits)
-            print(y_hits)
-            print('-------')
-            # assert legacy_hits == y_hits
-
-            return x_hits % 2 and y_hits % 2
-            
-
-            # row = [l for l in loop if l.x == tile.x]
-            # column = [l for l in loop if l.y == tile.y]
-
-            # last_index = -1
-            # for y in range(len(self.tiles)):
-            #     if Location(tile.x, y) in self._loop:
-            #         index = self._loop.index(Location(tile.x, y))
-            #         if index > last_index:
-            #             return False
-            #         last_index = index
-
-            # last_index = len(self.tiles[0])
-            # for x in range(len(self.tiles[0])):
-            #     if Location(x, tile.y) in self._loop:
-            #         index = self._loop.index(Location(x, tile.y))
-            #         if index < last_index:
-            #             return False
-            #         last_index = index
-            
-            # return True
-            
-
-            # x_left_count = len([l for l in loop if l.x < tile.x and l.y == tile.y])
-            # x_right_count = len([l for l in loop if l.x > tile.x and l.y == tile.y])
-            # y_top_count = len([l for l in loop if l.y < tile.y and l.x == tile.x])
-            # y_bottom_count = len([l for l in loop if l.y > tile.y and l.x == tile.x])
-            # tot_x = x_left_count + x_right_count
-            # tot_y = y_top_count + y_bottom_count
-            # non_border = x_left_count and x_right_count and y_top_count and y_bottom_count
-            # return non_border and ((x_left_count) % 2 and (y_top_count) % 2)
-        
-        inside_tiles = []
+    def purge_unused_tiles(self) -> Map:
+        new_tiles = []
         loop = self.compute_loop()
+        for i, r in enumerate(self.tiles):
+            new_row = []
+            for j in r:
+                if Location(i, j) in loop:
+                    new_row.append(self.tiles[i][j])
+                else:
+                    new_row.append('.')
+            new_tiles.append(new_row)
+        self.tiles = new_tiles
+        return self
+
+    def get_inside_tiles(self) -> list[Location]:
+        inside_tiles = []
+        poly = Polygon([Point(loc.x, loc.y) for loc in self.compute_loop()])
         for y, row in enumerate(self.tiles):
             for x, tile in enumerate(row):
-                    if tile == '.' and is_inside(loc := Location(x, y)):
-                        inside_tiles.append(loc)
+                    if tile == '.':
+                        loc = Location(x, y)
+                        p = Point(loc.x, loc.y)
+                        if poly.contains(p):
+                            inside_tiles.append(loc)
         return inside_tiles
 
     @staticmethod
@@ -194,32 +122,37 @@ if __name__ == '__main__':
         lines = [line.strip() for line in f.readlines()]
 
     print(f'part 1 len = {len(Map.loads(lines).compute_loop()) // 2}')
+    print(f'part 2 tot = {len(Map.loads(lines).purge_unused_tiles().get_inside_tiles())}')
 
-    sample = '''..........
-                .S------7.
-                .|F----7|.
-                .||....||.
-                .||....||.
-                .|L-7F-J|.
-                .|..||..|.
-                .L--JL--J.
-                ..........'''
-    # assert len(Map.loads(sample.splitlines()).get_inside_tiles()) == 8
 
-    map = Map.loads(sample.splitlines())
-    inside = map.get_inside_tiles()
-    for y, row in enumerate(map.tiles):
-        for x, v in enumerate(row):
-            if Location(x, y) in map.compute_loop():
-                print('x', end='')
-            else:
-                if Location(x, y) in inside:
-                    print('I', end='')
-                else:
-                    if v == '.':
-                        print('0', end='')
-                    else:
-                        print(v, end='')
-        print()
+    # sample = '''FF7FSF7F7F7F7F7F---7
+    #             L|LJ||||||||||||F--J
+    #             FL-7LJLJ||||||LJL-77
+    #             F--JF--7||LJLJ7F7FJ-
+    #             L---JF-JLJ.||-FJLJJ7
+    #             |F|F-JF---7F7-L7L|7|
+    #             |FFJF7L7F-JF7|JL---7
+    #             7-L-JL7||F7|L7F-7F7|
+    #             L.L7LFJ|||||FJL7||LJ
+    #             L7JLJL-JLJLJL--JLJ.L'''
+    # # assert len(Map.loads(sample.splitlines()).get_inside_tiles()) == 8
 
-    print(inside)
+    # map = Map.loads(sample.splitlines())
+    # map.purge_unused_tiles()
+
+    # inside = map.get_inside_tiles()
+    # for y, row in enumerate(map.tiles):
+    #     for x, v in enumerate(row):
+    #         if Location(x, y) in map.compute_loop():
+    #             print('x', end='')
+    #         else:
+    #             if Location(x, y) in inside:
+    #                 print('I', end='')
+    #             else:
+    #                 if v == '.':
+    #                     print('0', end='')
+    #                 else:
+    #                     print(v, end='')
+    #     print()
+
+    # print(inside)
