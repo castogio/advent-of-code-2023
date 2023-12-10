@@ -7,13 +7,6 @@ AccumulateOperator = Callable[[int, int], int]
 CombineOperator = Callable[[int, int], int]
 
 
-def combine_consecutive_pairs(lst: list[int], op: CombineOperator) -> list[int]:
-    result = []
-    for i in range(len(lst)-1):
-        result.append(op(lst[i], lst[i+1]))
-    return result
-
-
 def difference_accumulate(it: Iterable[int]) -> int:
     res = 0
     for v in it:
@@ -26,14 +19,17 @@ class Reading:
     values: list[int]
 
 
-    def get_prediction(self, stop_rule: StopRule, combine: CombineOperator, accumulate: AccumulateOperator) -> int:
+    def get_prediction(self, 
+                       stop_rule: StopRule, 
+                       combine: CombineOperator, 
+                       accumulate: AccumulateOperator) -> int:
         rows = [self.values]
-        current = self.values
+        cur = self.values
 
-        while stop_rule(current):
-            next_row = combine_consecutive_pairs(current, combine)
+        while stop_rule(cur):
+            next_row = [combine(a, b) for a, b in zip(cur[0:-1], cur[1:])]
             rows.append(next_row)
-            current = next_row
+            cur = next_row
         
         return accumulate(r[0] for r in rows[::-1][1::])
     
