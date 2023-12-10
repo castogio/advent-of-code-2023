@@ -2,6 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Iterable
 
+import time
+
 StopRule = Callable[[list[int]], bool]
 AccumulateOperator = Callable[[int, int], int]
 CombineOperator = Callable[[int, int], int]
@@ -43,8 +45,14 @@ if __name__ == '__main__':
     with open('./input.txt') as f:
         lines = [line.strip() for line in f.readlines()]
 
-    ops_p1 = {
+    ops_p1_trick = {
         'stop_rule': lambda current : current[0] != 0,
+        'combine': int.__sub__,
+        'accumulate': sum
+    }
+
+    ops_p1_notrick = {
+        'stop_rule': lambda current : any(i != 0 for i in current),
         'combine': int.__sub__,
         'accumulate': sum
     }
@@ -55,5 +63,14 @@ if __name__ == '__main__':
         'accumulate': difference_accumulate
     }
 
-    print(f'part1 total = {sum(Reading.loads(l.strip()).get_prediction(**ops_p1) for l in lines if len(l))}')
+    start = time.time()
+    print(f'part1 [TRICK] total = {sum(Reading.loads(l.strip()).get_prediction(**ops_p1_trick) for l in lines if len(l))}')
+    end = time.time()
+    print(f'TRICK execution time = {round((end-start) * 10**3, 2)} ms')
+
+    start = time.time()
+    print(f'part1 [NO TRICK] total = {sum(Reading.loads(l.strip()).get_prediction(**ops_p1_notrick) for l in lines if len(l))}')
+    end = time.time()
+    print(f'NO TRICK execution time = {round((end-start) * 10**3, 2)} ms')
+
     print(f'part2 total = {sum(Reading.loads(l.strip(), False).get_prediction(**ops_p2) for l in lines if len(l))}')
