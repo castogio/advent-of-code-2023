@@ -123,36 +123,3 @@ if __name__ == '__main__':
 
     print(f'part 1 len = {len(Map.loads(lines).compute_loop()) // 2}')
     print(f'part 2 tot = {len(Map.loads(lines).purge_unused_tiles().get_inside_tiles())}')
-
-
-    # sample = '''FF7FSF7F7F7F7F7F---7
-    #             L|LJ||||||||||||F--J
-    #             FL-7LJLJ||||||LJL-77
-    #             F--JF--7||LJLJ7F7FJ-
-    #             L---JF-JLJ.||-FJLJJ7
-    #             |F|F-JF---7F7-L7L|7|
-    #             |FFJF7L7F-JF7|JL---7
-    #             7-L-JL7||F7|L7F-7F7|
-    #             L.L7LFJ|||||FJL7||LJ
-    #             L7JLJL-JLJLJL--JLJ.L'''
-    # # assert len(Map.loads(sample.splitlines()).get_inside_tiles()) == 8
-
-    # map = Map.loads(sample.splitlines())
-    # map.purge_unused_tiles()
-
-    # inside = map.get_inside_tiles()
-    # for y, row in enumerate(map.tiles):
-    #     for x, v in enumerate(row):
-    #         if Location(x, y) in map.compute_loop():
-    #             print('x', end='')
-    #         else:
-    #             if Location(x, y) in inside:
-    #                 print('I', end='')
-    #             else:
-    #                 if v == '.':
-    #                     print('0', end='')
-    #                 else:
-    #                     print(v, end='')
-    #     print()
-
-    # print(inside)
