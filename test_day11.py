@@ -33,29 +33,6 @@ def test_expand():
     galaxies = [Galaxy(0, 3, 0), Galaxy(1, 7, 1), Galaxy(2, 0, 3)]
     assert expand(galaxies) == [Galaxy(0, 5, 0), Galaxy(1, 12, 1), Galaxy(2, 0, 4)]
 
-
-def test_expand_factor():
-    sample = ['...#......',
-              '.......#..']
-    galaxies = [Galaxy(0, 3, 0), Galaxy(1, 7, 1)]
-    assert expand(galaxies, factor=10) == [Galaxy(0, 3, 0), Galaxy(1, 34, 1)]
-
-    sample = ['...#......',
-              '..........',
-              '..........',
-              '....#.....']
-    
-    galaxies = [Galaxy(0, 3, 0), Galaxy(1, 4, 3)]
-    assert expand(galaxies, 10) == [Galaxy(0, 3, 0), Galaxy(1, 4, 23)]
-
-    sample = ['...#......',
-              '.......#..',
-              '..........',
-              '#.........']
-
-    galaxies = [Galaxy(0, 3, 0), Galaxy(1, 7, 1), Galaxy(2, 0, 3)]
-    assert expand(galaxies, 10) == [Galaxy(0, 23, 0), Galaxy(1, 57, 1), Galaxy(2, 0, 4)]
-
 def test_compute_path_lenghts():
     sample = ['...#......',
               '.......#..']
@@ -92,3 +69,6 @@ def test_part1_sample():
 
     galaxies = expand(parse_input([l.strip() for l in sample.splitlines()]), factor=10)
     assert sum(r[0] for r in compute_path_lenghts(galaxies)) == 1030
+
+    galaxies = expand(parse_input([l.strip() for l in sample.splitlines()]), factor=100)
+    assert sum(r[0] for r in compute_path_lenghts(galaxies)) == 8410

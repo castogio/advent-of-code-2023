@@ -18,7 +18,7 @@ def parse_input(lines: list[str]) -> list[Galaxy]:
                 i += 1
     return galaxies
 
-def expand(galaxies: list[Galaxy], factor: int = 1) -> list[Galaxy]:
+def expand(galaxies: list[Galaxy], factor: int = 2) -> list[Galaxy]:
 
     x_sorted = sorted(galaxies, key=lambda g: g.x)
     y_sorted = sorted(galaxies, key=lambda g: g.y)
@@ -27,13 +27,15 @@ def expand(galaxies: list[Galaxy], factor: int = 1) -> list[Galaxy]:
         delta_x = x_sorted[i+1].x - x_sorted[i].x - 1
         if delta_x > 0:
             for g in x_sorted[i+1:]:
-                g.x += (delta_x * factor)
+                g.x -= delta_x
+                g.x += delta_x * factor
 
     for i in range(len(y_sorted)-1):
         delta_y = y_sorted[i+1].y - y_sorted[i].y - 1
         if delta_y > 0:
             for g in y_sorted[i+1:]:
-                g.y += (delta_y * factor)
+                g.y -= delta_y
+                g.y += delta_y * factor
     
     return galaxies
 
@@ -51,5 +53,5 @@ if __name__ == '__main__':
     galaxies = expand(parse_input([l.strip() for l in lines]))
     print(f'part 1 total = {sum(r[0] for r in compute_path_lenghts(galaxies))}')
 
-    galaxies = expand(parse_input([l.strip() for l in lines]), factor=1000000)
+    galaxies = expand(parse_input([l.strip() for l in lines]), factor=1_000_000)
     print(f'part 2 total = {sum(r[0] for r in compute_path_lenghts(galaxies))}')
