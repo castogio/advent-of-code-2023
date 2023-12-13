@@ -1,6 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from pprint import pp
+from copy import deepcopy
 
 Matrix = list[list[str]]
 
@@ -23,81 +22,67 @@ def transpose(m: Matrix) -> Matrix:
             result[x][y] = el
     return result
 
-def find_symmetry_loc(m: Matrix) -> int:
+def find_symmetry_loc(m: Matrix, exlude: int = -1) -> int:
     seen = [m[0]]
-    last_candidate = 0
+    result = []
     for i, row in enumerate(m[1:], start=1):
-        last_candidate += 1
         if seen[-1] == row:
             remainder = m[i:i+len(seen)]
             previus = m[max(0, i-len(remainder)):i]
             if remainder == list(reversed(previus)):
-                return last_candidate
+                result.append(len(seen))
         seen.append(row)
 
-    if last_candidate >= len(m)-1:
+    if len(result) == 0:
         return -1
-    return last_candidate
-
-
-# def find_symmetry_loc(m: Matrix) -> int:
-#     base = 0
-#     top = len(m) - 1
-
-#     while base < len(m):
-#         is_same = all(el1 == el2 for el1, el2 in zip(m[base], m[top]))
+    
+    #  need to exclude already obtained result
+    # more specifically this happens if the simmetry line (with smudge)
+    # is below the new line and it would be picked as the longest match
+    if exlude == result[-1]:
+        try:
+            return result[-2]
+        except:
+            return -1
         
-#         base += 1
-#         if is_same:
-#             if base == top:
-#                     break
-#             top -= 1
-
-#     if base == len(m):
-#         m = list(reversed(m))
-#         base = 0
-#         top = len(m) - 1
-
-#         while base < len(m):
-#             is_same = all(el1 == el2 for el1, el2 in zip(m[base], m[top]))
-            
-#             base += 1
-#             if is_same:
-#                 if base == top:
-#                         break
-#                 top -= 1
-        
-#         if base == len(m):
-#             return -1
-#         base = len(m) - base - 1
-
-#     return base
+    return result[-1]
 
 def compute_p1_result(matrices: list[Matrix]) -> int:
     total = 0
     reflection_points = [(find_symmetry_loc(m), find_symmetry_loc(transpose(m))) for m in matrices]
-    for rp in reflection_points:
-        addition = rp[0]*100 if rp[0] != -1 else rp[1]
-        print(f'({rp[0]},{rp[1]}) -> {addition}')
+    for rval, cval in reflection_points:
+        addition = 0
+        addition += rval * 100 if rval != -1 else 0
+        addition += cval if cval != -1 else 0
+        total += addition
+    return total
+
+def find_symmetry_smudges(m: Matrix) -> int:
+    base_loc = find_symmetry_loc(m)
+    for r, row in enumerate(m):
+        for c, el in enumerate(row):
+            new_m = deepcopy(m)
+            new_m[r][c] = '#' if el == '.' else '.'
+            new_loc = find_symmetry_loc(new_m, base_loc)
+            if new_loc != -1 and new_loc != base_loc:
+                return new_loc
+    return -1
+
+def compute_p2_result(matrices: list[Matrix]) -> int:
+    total = 0
+    old_reflection_points = [(find_symmetry_loc(m), find_symmetry_loc(transpose(m))) for m in matrices]
+    reflection_points = [(find_symmetry_smudges(m), find_symmetry_smudges(transpose(m))) for m in matrices]
+    for old, new in zip(old_reflection_points, reflection_points):
+        addition = 0
+        rval, cval = new if old != new else old
+        addition = rval*100 if rval != -1 else cval
         total += addition
     return total
 
 if __name__ == '__main__':
     with open('./input.txt') as f:
-        # lines = [line.strip() for line in f.readlines()]
         matrices = load_matrices(f.read())
 
-    print(f'part1 total = {compute_p1_result(matrices)}')
-
-    # sample = '''#.##..##.
-    #             ..#.##.#.
-    #             ##......#
-    #             ##......#
-    #             ..#.##.#.
-    #             ..##..##.
-    #             #.#.##.#.'''
-    
-    # matrix = [list(l.strip()) for l in sample.splitlines()]
-    # pp(matrix)
-    # pp(transpose(matrix))
+    print(f'part1 total = {compute_p1_result(matrices)}') # 31956
+    print(f'part2 total = {compute_p2_result(matrices)}') # 37617
 
