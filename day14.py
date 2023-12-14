@@ -65,29 +65,29 @@ def cycle_n_times(m: Matrix, n: int) -> Matrix:
         new_m = cycle(new_m)
     return new_m
 
-def compute_p2_points(m: Matrix, iterations: int) -> int:
+def compute_p2_points(m: Matrix, max_iterations: int) -> int:
     t_m = deepcopy(m)
     previously_seen = []
     lowest_index = max_index = None
     duplicated = []
-    for _ in range(0, iterations):
+    for _ in range(max_iterations):
         t_m = cycle(t_m)
         if t_m not in previously_seen:
             previously_seen.append(t_m)
         else:
             duplicated.append(t_m)
-            i = previously_seen.index(t_m)
-            if i == lowest_index:
-                break
-            if lowest_index is None:
-                lowest_index = max_index = i
-            if i > max_index:
-                max_index = i
+            index = previously_seen.index(t_m)
+            if index == lowest_index:
+                break # the loop restarted
+            if not lowest_index: 
+                lowest_index = max_index = index
+            if index > max_index:
+                max_index = index
 
-    loop_range = max_index - lowest_index + 1
-    not_repeated = [el for el in previously_seen if el not in duplicated]
-    to_scan = (iterations - len(not_repeated)) % loop_range
-    return compute_points(duplicated[to_scan-1])
+    loop_length = max_index - lowest_index + 1
+    heading_not_repeated = [el for el in previously_seen if el not in duplicated]
+    dup_index = (max_iterations - len(heading_not_repeated)) % loop_length
+    return compute_points(duplicated[dup_index-1])
 
 
 if __name__ == '__main__':
