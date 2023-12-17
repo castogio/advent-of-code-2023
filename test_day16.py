@@ -2,17 +2,6 @@ import pytest
 
 from day16 import *
 
-# @pytest.fixture
-# def test_map() -> Map:
-#     print("Running setup method...")
-#     with open('./input.txt') as f:
-#         m = Map.loads(f.read())
-    
-#     yield m
-
-#     # Teardown code
-#     # nothing to do here
-
 
 def test_straight_hor_movement():
     sample_map = '...............'

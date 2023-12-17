@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from copy import copy
-from pprint import pp
+
 
 @dataclass
 class Position:
@@ -10,7 +10,6 @@ class Position:
 
     def __add__(self, o: Position) -> Position:
         return Position(self.x+o.x, self.y+o.y)
-
 
 
 @dataclass
@@ -25,6 +24,7 @@ class Player:
         self.old_position = self.position
         self.position += Position(self.horizontal_speed, self.vertical_speed)
         return self.position
+
 
 @dataclass
 class MapLocation:
@@ -85,7 +85,6 @@ class MapLocation:
         self.energized = True
         return None
         
-
 
 @dataclass
 class Map:
